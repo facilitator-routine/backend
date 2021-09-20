@@ -8,6 +8,7 @@ const RoutineSchema = new Schema({
         alarm:String, //url al sonido de alarma
         background:String
     //
+
         //spotify aqui?
         //modelar collection de steps
         //Order:Number
