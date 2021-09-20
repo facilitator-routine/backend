@@ -1,12 +1,12 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-const RoutineSchema = Schema({
-        Name: String,
-        Description:String,
-        Steps:Number,
-        Alarm:String, //url al sonido de alarma
-        Background:String
+const RoutineSchema = new Schema({
+        name: String,
+        description:String,
+        steps:Number,
+        alarm:String, //url al sonido de alarma
+        background:String
         //spotify aqui?
         //modelar collection de steps
         //Order:Number

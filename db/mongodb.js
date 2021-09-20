@@ -1,5 +1,5 @@
 const mongoose = require ('mongoose');
-mongoose.connection.on('open', ()=> console.log("conection DB"));
+mongoose.connection.on('open', ()=> console.log("connect DB"));
 async function connectDb({ port,host, dbName }){
     const uri = `mongodb://${host}:${port}/${dbName}`;
     let options = {
@@ -8,7 +8,7 @@ async function connectDb({ port,host, dbName }){
         //replset: {rs_name: 'myReplicaSetName'}
         //,user: 'myUserName',
         //pass: 'myPassword'
-        
+
     }
     await mongoose.connect( uri,
         {
