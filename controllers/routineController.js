@@ -23,7 +23,13 @@ async function addRoutine(req,res){
         res.status(500).send({message: e.message})//todo cambiar por mensaje user frienly
     }
 }
+
+async function getRoutines(req,res) {
+    //lean - objetos planos de js
+    const routines = await Routine.find().lean().exec()
+    res.status(200).send({routines})
+}
 const functions = {
-    addRoutine
+    addRoutine, getRoutines
 }
 module.exports = functions
