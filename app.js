@@ -5,7 +5,6 @@ const cors = require('cors')
 // Se invoca la función (de la variable express) y se almacena en la variable app.
 const app = express();
 const routineRoutes = require('./routes/routine')
-//Cambiar * por ruta valida
 app.use(cors({
     origin: '*'
 }))
