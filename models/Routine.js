@@ -18,6 +18,8 @@ const RoutineSchema = new Schema({
                 type: String,
                 validate: {
                     validator: function(value) {
+                        if (!value)
+                            return true;
                         const urlPattern = /(http|https):\/\/(w+:?w*#)?(S+)(:[0-9]+)?/|/([w#!:.?+=&%!-/])?/;
                         const urlRegExp = new RegExp(urlPattern);
                         return value.match(urlRegExp);
