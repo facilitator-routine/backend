@@ -4,6 +4,7 @@ const app = require("../app");
 require('dotenv').config();
 const { testDbConfig } = require('../config');
 const { connectDb, disconnectDb, clearDb }= require('../db/mongodb');
+const Routine = require('../models/Routine')
 
 describe("Rutinas", () => {
     beforeAll(async () => {
@@ -24,6 +25,24 @@ describe("Rutinas", () => {
         expect(response.statusCode).toBe(200);
         const { routines } = response.body
         expect(routines.length).toBe(0);
+    });
+
+    test("Elimino una rutina que no existe", async () => {
+        const id = "cualquiera"
+        const response = await request(app).delete(`/v1/routines/${id}`).send({routine: { _id: id }})
+
+        expect(response.statusCode).toBe(404);
+        const { message } = response.body
+        expect(message).toBe("Rutina no encontrada");
+    });
+
+    test("Elimino una rutina exitosamente", async () => {
+        const routine = Routine({ name: "asd", description: "qwer" })
+        const routineStored = await routine.save()
+        const id = routineStored._id.toString()
+        const response = await request(app).delete(`/v1/routines/${id}`).send({routine: { _id: id }})
+
+        expect(response.statusCode).toBe(204);
     });
 
     test("Crea rutina exitosamente y la devuelve en una respuesta JSON", async () => {

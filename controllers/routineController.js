@@ -1,5 +1,5 @@
 const Routine = require('../models/Routine')
-
+const mongoose = require('mongoose');
 
 async function addRoutine(req,res){
     try{
@@ -43,8 +43,18 @@ async function getRoutines(req,res) {
 }
 
 async function deleteRoutine(req,res) {
-    const routines = await Routine.deleteOne({_id: req.body.routine._id})
-    res.status(204).send({routines})
+    if (!mongoose.Types.ObjectId.isValid(req.body.routine._id)) {
+        res.status(404).json({ message: "Rutina no encontrada" })
+        return;
+    }
+    const { deletedCount } = await Routine.deleteOne({_id: req.body.routine._id})
+    res.setHeader('Content-Type', 'application/json');
+
+    if (deletedCount > 0) {
+        res.status(204).json({deletedCount: deletedCount})
+    } else {
+        res.status(404).json({ message: "Rutina no encontrada" })
+    }
 }
 const functions = {
     addRoutine, getRoutines, updateRoutine, deleteRoutine
