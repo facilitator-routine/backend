@@ -21,12 +21,7 @@ async function initApp(appConfig,dbConfig){
 initApp(appConfig, dbConfig)
 
 
-// Define el home de la página y que función se va a ejecutar.
-// La función tiene como parámetro el request y el response.
-app.get('/', function (req, res) {
-  res.send('Este es el home')
-  console.log("Página de inicio...")
-})
+
 
 
 
