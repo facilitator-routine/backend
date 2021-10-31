@@ -10,7 +10,4 @@ api.get('/routines', getRoutines)
 api.put('/routines/:_id', updateRoutine)
 api.delete('/routines/:_id', deleteRoutine)
 
-
-
-
 module.exports = api
