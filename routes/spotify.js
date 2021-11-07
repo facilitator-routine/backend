@@ -1,5 +1,5 @@
 const {Router} = require("express");
-const {login, callback, refresh} = require("../controllers/spotifyController")
+const {login, callback, refresh, logout} = require("../controllers/spotifyController")
 
 global.access_token = ''
 const api = Router()
@@ -10,6 +10,8 @@ api.get('/auth/token', (req, res) => {
     res.json({ access_token: access_token})
 })
 api.get('/refresh_token',refresh)
+api.delete('/logout',logout)
+
 module.exports = api
 
 

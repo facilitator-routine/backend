@@ -43,13 +43,12 @@ async function getUser(access_token, refresh_token) {
     };
     request.get(options, function (error, response, body) {
         userService.findOneOrCreateNewUser(body, access_token, refresh_token)
-        //console.log("get user response" + JSON.stringify(body));
     });
 
 }
-function obtainAuthOptions(req,res) {
+function obtainAuthOptions(req,_res) {
     const code = req.query.code;
-    const authOptions = {
+    return {
         url: 'https://accounts.spotify.com/api/token',
         headers: {
             'Authorization': 'Basic ' + (Buffer.from(spotify_client_id + ':' + spotify_client_secret).toString('base64')),
@@ -63,14 +62,12 @@ function obtainAuthOptions(req,res) {
 
         json: true
     };
-    return authOptions;
 }
 async function callback (req,res) {
 
     const authOptions = obtainAuthOptions(req,res);
 
     request.post(authOptions, function(error, response, body) {
-        //console.log("access token response" + JSON.stringify(response))
         let access_token;
         if (!error && response.statusCode === 200) {
             access_token = body.access_token;
@@ -104,7 +101,16 @@ async function refresh(req, res) {
     });
 }
 
+async function logout (req,res) {
+    try{
+        await userService.logout(req.body)
+        res.status(200).send()
+    }catch (e) {
+        res.status(500).send("Algo salio mal al intentar cerrar sesiòn")
+    }
+}
+
 const functions = {
-    login, callback, refresh
+    login, callback, refresh, logout
 }
 module.exports = functions
