@@ -15,11 +15,6 @@ const UserSchema = new Schema({
         type: mongoose.Schema.Types.ObjectId, ref: 'UserSpotifyCredential',
         required: false
     },
-    routines: [
-        {
-            type: mongoose.Schema.Types.ObjectId, ref: 'Routines'
-        }
-    ],
     created: {
         type: Date,
         default: new Date()

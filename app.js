@@ -1,12 +1,16 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
-//aqui todo lo relacionado con express
-// Se invoca la función (de la variable express) y se almacena en la variable app.
-const app = express();
 const routineRoutes = require('./routes/routine')
-const spotifyRoutes = require('./routes/spotify')
+const spotifyRoutes = require('./routes/session')
+const session = require('express-session')
 
+const app = express();
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+}))
 app.use(cors({
     origin: '*'
 }))

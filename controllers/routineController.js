@@ -1,6 +1,13 @@
 const Routine = require('../models/Routine')
 const mongoose = require('mongoose');
 
+const User = require("../models/User")
+
+async function getCurrentUser(req) {
+    const userId = req.session.userId
+    return User.findById(userId).exec()
+}
+
 async function addRoutine(req,res){
     try{
         const {
@@ -10,7 +17,10 @@ async function addRoutine(req,res){
             alarm,
             background
         }=req.body
-        const routine = Routine({name,
+        const currentUser = await getCurrentUser(req);
+        const routine = Routine({
+            owner: currentUser,
+            name,
             description,
             steps,
             alarm,
@@ -27,6 +37,7 @@ async function updateRoutine(req,res){
         const {
             _id,
         }=req.body
+        // revisar que req.body no pise el owner
         const routine = await Routine.findOneAndUpdate({_id: _id}, req.body, {upsert: true})
         res.status(200).send({routine})
 
@@ -38,7 +49,8 @@ async function updateRoutine(req,res){
 
 async function getRoutines(req,res) {
     //lean - objetos planos de js
-    const routines = await Routine.find().lean().exec()
+    const currentUser = await getCurrentUser(req);
+    const routines = await Routine.find({ owner: currentUser }).lean().exec()
     res.status(200).send({routines})
 }
 

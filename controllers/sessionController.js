@@ -1,4 +1,7 @@
-const request = require('request');
+const { get, post } = require('request');
+const util = require('util')
+const getRequestPromise = util.promisify(get);
+const postRequestPromise = util.promisify(post);
 const dotenv = require("dotenv");
 const userService = require("../service/userService")
 
@@ -41,9 +44,8 @@ async function getUser(access_token, refresh_token) {
         },
         json: true
     };
-    request.get(options, function (error, response, body) {
-         userService.findOneOrCreateNewUser(body, access_token, refresh_token);
-    })
+    const response = await getRequestPromise(options)
+    return userService.findOneOrCreateNewUser(response.body, access_token, refresh_token);
 }
 
 function obtainAuthOptions(req,_res) {
@@ -63,22 +65,25 @@ function obtainAuthOptions(req,_res) {
         json: true
     };
 }
-async function callback (req,res) {
-
+async function callback (req, res) {
     const authOptions = obtainAuthOptions(req,res);
-    let user = ""
-        request.post(authOptions, async function (error, response, body) {
-            let access_token;
-            if (!error && response.statusCode === 200) {
-                access_token = body.access_token;
-                user = await getUser(access_token, body.refresh_token)
-                res.redirect('http://localhost:3000?access_token=' + access_token)
+    const response = await postRequestPromise(authOptions)
+    if (response.statusCode === 200) {
+        const accessToken = response.body.access_token;
+        const user = await getUser(accessToken, response.body.refresh_token)
+        req.session.userId = user._id.toString()
+        req.session.accessToken = accessToken
+        req.session.save(function(err) {
+            if (!err) {
+                res.redirect('http://localhost:3000?access_token=' + accessToken)
             }
-        });
+        })
+    }
 }
 async function logout (req,res) {
     try{
         await userService.logout(req.body)
+        req.session.destroy()
         res.status(200).send()
     }catch (e) {
         res.status(500).send("Algo salio mal al intentar cerrar sesiòn")
