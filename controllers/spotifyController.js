@@ -42,10 +42,10 @@ async function getUser(access_token, refresh_token) {
         json: true
     };
     request.get(options, function (error, response, body) {
-        userService.findOneOrCreateNewUser(body, access_token, refresh_token)
-    });
-
+         userService.findOneOrCreateNewUser(body, access_token, refresh_token);
+    })
 }
+
 function obtainAuthOptions(req,_res) {
     const code = req.query.code;
     return {
@@ -66,41 +66,16 @@ function obtainAuthOptions(req,_res) {
 async function callback (req,res) {
 
     const authOptions = obtainAuthOptions(req,res);
-
-    request.post(authOptions, function(error, response, body) {
-        let access_token;
-        if (!error && response.statusCode === 200) {
-            access_token = body.access_token;
-            getUser(access_token, body.refresh_token)
-            res.redirect('http://localhost:3000?access_token=' + access_token)
-        }
-    });
+    let user = ""
+        request.post(authOptions, async function (error, response, body) {
+            let access_token;
+            if (!error && response.statusCode === 200) {
+                access_token = body.access_token;
+                user = await getUser(access_token, body.refresh_token)
+                res.redirect('http://localhost:3000?access_token=' + access_token)
+            }
+        });
 }
-
-async function refresh(req, res) {
-    //TODO probar
-    const refresh_token = req.query.refresh_token; //cambiar por refresh token del user
-    const authOptions = {
-        url: 'https://accounts.spotify.com/api/token',
-        headers: { 'Authorization': 'Basic ' + (new Buffer(spotify_client_id + ':' + spotify_client_secret).toString('base64')) },
-        form: {
-            grant_type: 'refresh_token',
-            refresh_token: refresh_token
-        },
-        json: true
-    };
-
-    request.post(authOptions, function(error, response, body) {
-        if (!error && response.statusCode === 200) {
-            const access_token = body.access_token;
-            //guardar nuevo token en el user
-            res.send({
-                'access_token': access_token
-            });
-        }
-    });
-}
-
 async function logout (req,res) {
     try{
         await userService.logout(req.body)
@@ -111,6 +86,6 @@ async function logout (req,res) {
 }
 
 const functions = {
-    login, callback, refresh, logout
+    login, callback, logout
 }
 module.exports = functions
