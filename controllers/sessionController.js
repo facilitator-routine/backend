@@ -75,7 +75,7 @@ async function callback (req, res) {
         req.session.accessToken = accessToken
         req.session.save(function(err) {
             if (!err) {
-                res.redirect('http://localhost:3000?access_token=' + accessToken)
+                res.redirect('http://localhost:3000?t=' + accessToken)
             }
         })
     }
