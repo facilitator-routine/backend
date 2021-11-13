@@ -30,7 +30,8 @@ async function login(req,res) {
         client_id: spotify_client_id,
         scope: scope,
         redirect_uri: spotify_redirect_uri,
-        state: state
+        state: state,
+        show_dialog:true
     })
 
     res.redirect('https://accounts.spotify.com/authorize/?' + auth_query_parameters.toString());
@@ -67,6 +68,9 @@ function obtainAuthOptions(req,_res) {
 }
 async function callback (req, res) {
     const authOptions = obtainAuthOptions(req,res);
+    if(req.query.error){
+        return  res.redirect('http://localhost:3000')
+    }
     const response = await postRequestPromise(authOptions)
     if (response.statusCode === 200) {
         const accessToken = response.body.access_token;
@@ -79,6 +83,7 @@ async function callback (req, res) {
             }
         })
     }
+
 }
 async function logout (req,res) {
     try{
