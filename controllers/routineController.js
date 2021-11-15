@@ -29,7 +29,7 @@ async function addRoutine(req,res){
         res.status(201).send({routineStored})
 
     }catch (e){
-        res.status(500).send({message: e.message})//todo cambiar por mensaje user frienly
+        res.status(500).send({message: e.message})
     }
 }
 async function updateRoutine(req,res){
@@ -43,7 +43,7 @@ async function updateRoutine(req,res){
 
     }catch (e){
         console.log(e.message)
-        res.status(500).send({message: e.message})//todo cambiar por mensaje user frienly
+        res.status(500).send({message: e.message})
     }
 }
 

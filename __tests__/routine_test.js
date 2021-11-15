@@ -1,10 +1,28 @@
 const request = require("supertest");
 const app = require("../app");
+const express = require("express");
+const session = require('express-session');
 
 require('dotenv').config();
 const { testDbConfig } = require('../config');
 const { connectDb, disconnectDb, clearDb }= require('../db/mongodb');
 const Routine = require('../models/Routine')
+const User = require('../models/User')
+
+function buildAuthenticatedApp(user) {
+    const mockApp = express();
+    mockApp.use(session({
+        secret: process.env.SESSION_SECRET,
+        resave: false,
+        saveUninitialized: true,
+    }));
+    mockApp.all('*', function(req, res, next) {
+        req.session.userId = user._id.toString();
+        next();
+    });
+    mockApp.use(app);
+    return mockApp;
+}
 
 describe("Rutinas", () => {
     beforeAll(async () => {
@@ -37,7 +55,8 @@ describe("Rutinas", () => {
     });
 
     test("Elimino una rutina exitosamente", async () => {
-        const routine = Routine({ name: "asd", description: "qwer" })
+        const owner = await User({ name: "Alguien", email: "alguien@ejemplo.com" }).save()
+        const routine = Routine({ owner: owner, name: "asd", description: "qwer" })
         const routineStored = await routine.save()
         const id = routineStored._id.toString()
         const response = await request(app).delete(`/v1/routines/${id}`).send({routine: { _id: id }})
@@ -46,7 +65,9 @@ describe("Rutinas", () => {
     });
 
     test("Crea rutina exitosamente y la devuelve en una respuesta JSON", async () => {
-        const createRoutineResponse = await request(app)
+        const owner = await User({ name: "Alguien", email: "alguien@ejemplo.com" }).save()
+        const authenticatedApp = buildAuthenticatedApp(owner);
+        const createRoutineResponse = await request(authenticatedApp)
             .post("/v1/routines")
             .send({name: "rutina de prueba 1",
                 description: "asdasdasd",
@@ -57,7 +78,7 @@ describe("Rutinas", () => {
         const { routineStored } = createRoutineResponse.body
         expect(routineStored.name).toBe( "rutina de prueba 1");
 
-        const listRoutinesResponse = await request(app).get("/v1/routines")
+        const listRoutinesResponse = await request(authenticatedApp).get("/v1/routines")
 
         expect(listRoutinesResponse.statusCode).toBe(200);
         const { routines } = listRoutinesResponse.body
