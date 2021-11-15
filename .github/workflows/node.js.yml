@@ -38,3 +38,4 @@ jobs:
         TEST_DB_NAME: facilitatorRoutineDBTest
         DB_HOST: localhost
         DB_PORT: 27017
+        SESSION_SECRET: panrvarpqmnsdqcamir
