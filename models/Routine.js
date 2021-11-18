@@ -18,7 +18,7 @@ const RoutineSchema = new Schema({
         },
         alarm:{
             type: String,
-            required: false
+            required: true
         },
         background: {
                 type: String,
