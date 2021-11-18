@@ -5,11 +5,12 @@ const User = require("../models/User")
 
 async function getCurrentUser(req) {
     const userId = req.session.userId
+    console.log("Dato de la sesion userId: " + JSON.stringify(req.session))
     return User.findById(userId).exec()
 }
 
 async function addRoutine(req,res){
-    try{
+
         const {
             name,
             description,
