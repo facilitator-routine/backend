@@ -10,7 +10,7 @@ async function getCurrentUser(req) {
 }
 
 async function addRoutine(req,res){
-
+    try{
         const {
             name,
             description,
