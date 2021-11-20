@@ -1,35 +1,33 @@
 const Routine = require('../models/Routine')
 const mongoose = require('mongoose');
-
 const User = require("../models/User")
+const Item = require("../models/ItemRoutine")
 
 async function getCurrentUser(req) {
     const userId = req.session.userId
-    console.log("Dato de la sesion userId: " + JSON.stringify(req.session))
     return User.findById(userId).exec()
 }
 
 async function addRoutine(req,res){
     try{
         const {
-            name,
-            description,
-            steps,
-            alarm,
-            background
+            name, description, items, alarm, background
         }=req.body
         const currentUser = await getCurrentUser(req);
+        const itemObjects = await Promise.all(items.map(item => {
+            return Item({ order: item[0], type: item[1], duration: item[2] }).save()
+        }))
         const routine = Routine({
             owner: currentUser,
             name,
             description,
-            steps,
+            items: itemObjects,
             alarm,
             background})
         const routineStored = await routine.save()
         res.status(201).send({routineStored})
-
     }catch (e){
+        console.error("error: " + e.message)
         res.status(500).send({message: e.message})
     }
 }
@@ -37,11 +35,24 @@ async function updateRoutine(req,res){
     try{
         const {
             _id,
+            name,
+            description,
+            items,
+            alarm,
+            background
         }=req.body
-        // revisar que req.body no pise el owner
-        const routine = await Routine.findOneAndUpdate({_id: _id}, req.body, {upsert: true})
-        res.status(200).send({routine})
+        // eliminar items
+        const routine = await Routine.findOne({_id: _id})
+        const itemIds = routine.items.map(item => item._id )
+        await Item.deleteMany({ _id: { $in: itemIds }})
+        //agergar nuevos
+        const itemObjects = await Promise.all(items.map(item => {
+            return Item({ order: item[0], type: item[1], duration: item[2] }).save()
+        }))
+       // await Routine.findOneAndUpdate({_id: _id}, {...req.body}, {upsert: true})
+        await Routine.updateOne({_id: _id}, {  ...req.body, items:itemObjects });
 
+        res.status(200).send({routine})
     }catch (e){
         console.log(e.message)
         res.status(500).send({message: e.message})
@@ -51,15 +62,18 @@ async function updateRoutine(req,res){
 async function getRoutines(req,res) {
     //lean - objetos planos de js
     const currentUser = await getCurrentUser(req);
-    const routines = await Routine.find({ owner: currentUser }).lean().exec()
+    const routines = await Routine.find({ owner: currentUser }).populate('items').lean().exec()
     res.status(200).send({routines})
 }
 
 async function deleteRoutine(req,res) {
+    console.log("delete body " + JSON.stringify(req.body.routine))
     if (!mongoose.Types.ObjectId.isValid(req.body.routine._id)) {
         res.status(404).json({ message: "Rutina no encontrada" })
         return;
     }
+    const itemIds = req.body.routine.items.map(item => item._id )
+    await Item.deleteMany({ _id: { $in: itemIds }})
     const { deletedCount } = await Routine.deleteOne({_id: req.body.routine._id})
     res.setHeader('Content-Type', 'application/json');
 
