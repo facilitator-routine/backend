@@ -72,7 +72,7 @@ async function deleteRoutine(req,res) {
         res.status(404).json({ message: "Rutina no encontrada" })
         return;
     }
-    const itemIds = req.body.routine.items.map(item => item._id )
+    const itemIds = req.body.routine.items?.map(item => item._id )
     await Item.deleteMany({ _id: { $in: itemIds }})
     const { deletedCount } = await Routine.deleteOne({_id: req.body.routine._id})
     res.setHeader('Content-Type', 'application/json');

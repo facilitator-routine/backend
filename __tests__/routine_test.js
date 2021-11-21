@@ -8,6 +8,7 @@ const { testDbConfig } = require('../config');
 const { connectDb, disconnectDb, clearDb }= require('../db/mongodb');
 const Routine = require('../models/Routine')
 const User = require('../models/User')
+const Item = require('../models/ItemRoutine')
 
 function buildAuthenticatedApp(user) {
     const mockApp = express();
@@ -56,7 +57,7 @@ describe("Rutinas", () => {
 
     test("Elimino una rutina exitosamente", async () => {
         const owner = await User({ name: "Alguien", email: "alguien@ejemplo.com" }).save()
-        const routine = Routine({ owner: owner, name: "asd", description: "qwer" })
+        const routine = Routine({ owner: owner, name: "asd", description: "qwer", items:[] })
         const routineStored = await routine.save()
         const id = routineStored._id.toString()
         const response = await request(app).delete(`/v1/routines/${id}`).send({routine: { _id: id }})
@@ -64,7 +65,7 @@ describe("Rutinas", () => {
         expect(response.statusCode).toBe(204);
     });
 
-    test("Crea rutina exitosamente y la devuelve en una respuesta JSON", async () => {
+    test("Crea rutina exitosamente sin items y la devuelve en una respuesta JSON", async () => {
         const owner = await User({ name: "Alguien", email: "alguien@ejemplo.com" }).save()
         const authenticatedApp = buildAuthenticatedApp(owner);
         const createRoutineResponse = await request(authenticatedApp)
@@ -72,6 +73,7 @@ describe("Rutinas", () => {
             .send({name: "rutina de prueba 1",
                 description: "asdasdasd",
                 steps: 3,
+                items:[],
                 alarm: ""})
 
         expect(createRoutineResponse.statusCode).toBe(201);
@@ -84,5 +86,32 @@ describe("Rutinas", () => {
         const { routines } = listRoutinesResponse.body
         expect(routines?.length).toBe(1);
         expect(routines[0].name).toBe("rutina de prueba 1")
+    });
+
+    test("Crea rutina exitosamente con items y la devuelve en una respuesta JSON", async () => {
+        const owner = await User({ name: "Alguien", email: "alguien@ejemplo.com" }).save()
+        const item1=["1","Cronómetro", "", ""]
+        const item2=["2","Cronómetro", "", ""]
+        const itemsList = [item1, item2]
+        const authenticatedApp = buildAuthenticatedApp(owner);
+        const createRoutineResponse = await request(authenticatedApp)
+            .post("/v1/routines")
+            .send({name: "rutina de prueba 1",
+                description: "asdasdasd",
+                items:itemsList,
+                alarm: ""})
+
+        expect(createRoutineResponse.statusCode).toBe(201);
+        const { routineStored } = createRoutineResponse.body
+        expect(routineStored.name).toBe( "rutina de prueba 1");
+
+        const listRoutinesResponse = await request(authenticatedApp).get("/v1/routines")
+
+        expect(listRoutinesResponse.statusCode).toBe(200);
+        const { routines } = listRoutinesResponse.body
+        expect(routines?.length).toBe(1);
+        expect(routines[0].name).toBe("rutina de prueba 1")
+        expect(routines[0].items.length).toBe(2)
+        expect(routines[0].items[1].type).toBe("Cronómetro")
     });
 });
