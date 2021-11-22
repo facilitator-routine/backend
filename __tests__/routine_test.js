@@ -114,4 +114,52 @@ describe("Rutinas", () => {
         expect(routines[0].items.length).toBe(2)
         expect(routines[0].items[1].type).toBe("Cronómetro")
     });
+
+    test("Crea rutina con item erroneo", async () => {
+        const owner = await User({ name: "Alguien", email: "alguien@ejemplo.com" }).save()
+        const item1=["1","lala", "", ""]
+        const itemsList = [item1]
+        const authenticatedApp = buildAuthenticatedApp(owner);
+        const createRoutineResponse = await request(authenticatedApp)
+            .post("/v1/routines")
+            .send({name: "rutina de prueba 1",
+                description: "asdasdasd",
+                items:itemsList,
+                alarm: ""})
+
+        expect(createRoutineResponse.statusCode).toBe(400);
+        const { message } = createRoutineResponse.body
+        expect(message).toBe("Error de validación de datos");
+
+        const listRoutinesResponse = await request(authenticatedApp).get("/v1/routines")
+        expect(listRoutinesResponse.statusCode).toBe(200);
+    });
+
+    test("Dada rutina con items, le edito nombre y los items exitosamente", async () => {
+        const owner = await User({ name: "Alguien", email: "alguien@ejemplo.com" }).save()
+        const item1=await Item ({order:"1",type:"Cronómetro", duration:""}).save()
+        const item2=await Item ({order:"2",type:"Cronómetro", duration:""}).save()
+        const itemsList = [item1, item2]
+        const rutineToEdit = await Routine({owner:owner, name:"Soy rutina editable", description:"descripcion", items:itemsList}).save()
+
+        const itemNuevo1=["1","Cronómetro", "", ""]
+        const itemNuevo2=["2","Cuenta Regresiva", "00:50", ""]
+        const itemNuevo3=["3","Cronómetro", "", ""]
+        const newItemsList = [itemNuevo1, itemNuevo2, itemNuevo3]
+
+        const authenticatedApp = buildAuthenticatedApp(owner);
+
+        const updateRoutineResponse = await request(authenticatedApp)
+            .put("/v1/routines/" + rutineToEdit._id)
+            .send({_id:rutineToEdit._id,
+                name: "Soy una rutina editada",
+                description: "descripcion",
+                items:newItemsList,
+                alarm: ""})
+
+        expect(updateRoutineResponse.statusCode).toBe(200);
+        const { editedRoutine } = updateRoutineResponse.body
+        expect(editedRoutine.name).toBe( "Soy una rutina editada");
+        expect(editedRoutine.items.length).toBe(3)
+    });
 });

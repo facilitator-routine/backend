@@ -10,9 +10,7 @@ async function getCurrentUser(req) {
 
 async function addRoutine(req,res){
     try{
-        const {
-            name, description, items, alarm, background
-        }=req.body
+        const { name, description, items, alarm, background} = req.body
         const currentUser = await getCurrentUser(req);
         const itemObjects = await Promise.all(items.map(item => {
             return Item({ order: item[0], type: item[1], duration: item[2] }).save()
@@ -26,35 +24,32 @@ async function addRoutine(req,res){
             background})
         const routineStored = await routine.save()
         res.status(201).send({routineStored})
-    }catch (e){
-        console.error("error: " + e.message)
+    } catch (e) {
+        console.error("Add Routine error: " + e.message)
+        if(e.message.includes("validation failed")){
+            return res.status(400).send({message:"Error de validación de datos"})
+        }
         res.status(500).send({message: e.message})
     }
 }
 async function updateRoutine(req,res){
     try{
-        const {
-            _id,
-            name,
-            description,
-            items,
-            alarm,
-            background
-        }=req.body
+        const { _id, name, description, items, alarm, background } = req.body
         // eliminar items
         const routine = await Routine.findOne({_id: _id})
-        const itemIds = routine.items.map(item => item._id )
+        const itemIds = routine.items?.map(item => item._id )
         await Item.deleteMany({ _id: { $in: itemIds }})
         //agergar nuevos
         const itemObjects = await Promise.all(items.map(item => {
             return Item({ order: item[0], type: item[1], duration: item[2] }).save()
         }))
-       // await Routine.findOneAndUpdate({_id: _id}, {...req.body}, {upsert: true})
-        await Routine.updateOne({_id: _id}, {  ...req.body, items:itemObjects });
-
-        res.status(200).send({routine})
-    }catch (e){
-        console.log(e.message)
+        const editedRoutine = await Routine.findOneAndUpdate({_id: _id}, {  ...req.body, items:itemObjects }, { returnDocument: 'after'});
+        res.status(200).send({editedRoutine})
+    } catch (e) {
+        console.log("Update Routine error: " + e.message)
+        if(e.message.includes("validation failed")){
+            return res.status(400).send({message:"Error de validación de datos"})
+        }
         res.status(500).send({message: e.message})
     }
 }
