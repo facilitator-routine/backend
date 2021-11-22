@@ -8,7 +8,8 @@ const ItemSchema = new Schema({
     },
     type: {
         type: String,
-        required: true
+        required: true,
+        enum: ['Cronómetro', 'Cuenta Regresiva'],
     },
     duration:{
         type: String,
