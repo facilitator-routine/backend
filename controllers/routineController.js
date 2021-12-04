@@ -2,6 +2,7 @@ const Routine = require('../models/Routine')
 const mongoose = require('mongoose');
 const User = require("../models/User")
 const Item = require("../models/ItemRoutine")
+const {stringify} = require("nodemon/lib/utils");
 
 async function getCurrentUser(req) {
     const userId = req.session.userId
@@ -60,6 +61,10 @@ async function getRoutines(req,res) {
     const routines = await Routine.find({ owner: currentUser }).populate('items').lean().exec()
     res.status(200).send({routines})
 }
+async function findRoutine(req,res) {
+    const routine = await Routine.findById(req.params._id ).populate('items').lean().exec()
+    res.status(200).send({routine})
+}
 
 async function deleteRoutine(req,res) {
     console.log("delete body " + JSON.stringify(req.body.routine))
@@ -79,6 +84,6 @@ async function deleteRoutine(req,res) {
     }
 }
 const functions = {
-    addRoutine, getRoutines, updateRoutine, deleteRoutine
+    addRoutine, getRoutines, updateRoutine, deleteRoutine, findRoutine
 }
 module.exports = functions
